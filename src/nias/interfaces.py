@@ -8,7 +8,6 @@ from typing import Self, TypeAlias
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-
 Scalar: TypeAlias = float | complex | np.number
 
 
@@ -66,7 +65,7 @@ class VectorSpace(ABC):
         pass
 
     @abstractproperty
-    def dual_space(self) -> 'VectorSpace':
+    def antidual_space(self) -> 'VectorSpace':
         pass
 
     @abstractmethod
@@ -134,7 +133,7 @@ class SesquilinearForm(ABC):
         pass
 
     @abstractmethod
-    def as_operator(self) -> 'AntiLinearOperator':
+    def as_operator(self) -> 'LinearOperator':
         pass
 
 
@@ -162,7 +161,7 @@ class EuclideanSpace(HilbertSpaceWithBasis):
     """
 
     @property
-    def dual_space(self) -> 'EuclideanSpace':
+    def antidual_space(self) -> 'EuclideanSpace':
         return self
 
 
@@ -191,13 +190,6 @@ class LinearOperator(Operator):
         pass
 
 
-class AntiLinearOperator(Operator):
-
-    @abstractmethod
-    def apply_transpose(self, V: VectorArray) -> VectorArray:
-        r""":math:`A^T(f)(x) := \overline{f(A(x))}`."""
-
-
 class HSLinearOperator(LinearOperator):
     source_space: HilbertSpace
     range_space: HilbertSpace
@@ -206,18 +198,8 @@ class HSLinearOperator(LinearOperator):
         return self.source_space.dual_space.riesz(self.apply_transpose(self.range.riesz(V)))
 
 
-class HSAntiLinearOperator(LinearOperator):
-    source_space: HilbertSpace
-    range_space: HilbertSpace
-
-    def apply_adjoint(self, V: VectorArray) -> VectorArray:
-        r""":math:`(y, A^*x) := \overline{(Ay, x)}`."""
-        # check if following formula is true
-        # return self.source_space.dual_space.riesz(self.apply_transpose(self.range.riesz(V)))
-
-
 class LinearSolver(ABC):
 
     @abstractmethod
-    def solve(self, lhs: LinearOperator|AntiLinearOperator, rhs: VectorArray) -> VectorArray:
+    def solve(self, lhs: LinearOperator, rhs: VectorArray) -> VectorArray:
         pass
