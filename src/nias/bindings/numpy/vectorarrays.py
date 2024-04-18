@@ -9,7 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.sparse import issparse
 
-from nias.base.vectorarray import VectorArrayBase, VectorArrayImpl
+from nias.base.vectorarrays import VectorArrayBase, VectorArrayImpl
 from nias.interfaces import ArrayLike, Indices, VectorArray, VectorSpace
 
 
