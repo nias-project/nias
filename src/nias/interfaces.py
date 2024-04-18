@@ -3,21 +3,66 @@
 # License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Self, TypeAlias
+from numbers import Number
+from typing import Self, TypeAlias, Union
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-Scalar: TypeAlias = float | complex | np.number
+Scalar: TypeAlias = int | float | complex | np.number
+Indices: TypeAlias = None | int | slice | list[int] | NDArray
 
 
 class VectorArray(ABC):
+    """Abstract VectorArray interface.
 
+    The scalar_type of a VectorArray never changes with one exception:
+    if a real array is multiplied (in-place or not) with a complex scalar,
+    its scalar_type changes to the corresponding complex type.
+    Not all VectorArray implementations need to support complex numbers,
+    however.
+
+    append/axpy/dual_pairing/__add__/__iadd_/__setitem__ require
+    both arrays to be compatible. In particular this means that both
+    arrays need to be contained in a common (algebraic) vector space.
+    Further, the scalar_types of both arrays need to agree
+    (up to complexification).
+
+    All complex VectorArrays are assumed to be equiped with a canonical
+    conjugation operation, which yields the real and imaginary part of
+    a vector in the array.
+    """
+
+    base: Union['VectorArray', None]
     is_view: bool
-    field_type: type
+    scalar_type: type
+
+    @abstractmethod
+    def __len__(self) -> int:
+        pass
+
+    @abstractmethod
+    def is_compatible_array(self, other: 'VectorArray') -> bool:
+        pass
 
     @abstractmethod
     def copy(self) -> Self:
+        pass
+
+    @abstractmethod
+    def append(self, other: 'VectorArray', remove_from_other: bool = False) -> None:
+        pass
+
+    @abstractmethod
+    def __getitem__(self, ind: Indices) -> 'VectorArray':
+        pass
+
+    @abstractmethod
+    def __setitem__(self, ind: Indices, other: 'VectorArray') -> None:
+        pass
+
+    @abstractmethod
+    def __delitem__(self, ind: Indices):
         pass
 
     @abstractmethod
@@ -32,19 +77,94 @@ class VectorArray(ABC):
     def lincomb(self, coefficients: ArrayLike) -> 'VectorArray':
         pass
 
+    @property
+    def is_complex(self) -> bool:
+        return isinstance(self.scalar_type, np.complexfloating)
+
+    @abstractproperty
+    def real(self) -> 'VectorArray':
+        pass
+
+    @abstractproperty
+    def imag(self) -> 'VectorArray':
+        pass
+
     @abstractmethod
-    def __getitem__(self, indices: ArrayLike) -> 'VectorArray':
+    def conj(self) -> 'VectorArray':
         pass
 
     def _dual_pairing(self, other: 'VectorArray') -> NDArray:
         return NotImplemented
 
+    def __add__(self, other: 'VectorArray'):
+        result = self.copy()
+        result.axpy(1., other)
+        return result
 
-def dual_pairing(left: VectorArray, right: VectorArray) -> NDArray:
-    result = left._dual_pairing(right)
-    if result == NotImplemented:
-        result = right._dual_pairing(left)
-    if result == NotImplemented:
+    def __iadd__(self, other):
+        self.axpy(1, other)
+        return self
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        result = self.copy()
+        result.axpy(-1., other)
+        return result
+
+    def __isub__(self, other):
+        self.axpy(-1, other)
+        return self
+
+    def __mul__(self, other):
+        result = self.copy()
+        result.scal(other)
+        return result
+
+    __rmul__ = __mul__
+
+    def __imul__(self, other):
+        self.scal(other)
+        return self
+
+    def __neg__(self):
+        result = self.copy()
+        result.scal(-1.)
+        return result
+
+    # override NumPy binary operations and ufuncs
+    __array_priority__ = 100.0
+    __array_ufunc__ = None
+
+    def check_ind(self, ind: Indices) -> bool:
+        """Check if index is admissible.
+
+        Check if `ind` is an admissible list of indices in the sense
+        of the class documentation.
+        """
+        l = len(self)
+        return (type(ind) is slice
+                or isinstance(ind, Number) and -l <= ind < l
+                or isinstance(ind, (list, np.ndarray)) and all(-l <= i < l for i in ind))
+
+    def check_ind_unique(self, ind: Indices) -> bool:
+        """Check if index is admissible and unique.
+
+        Check if `ind` is an admissible list of non-repeated indices in
+        the sense of the class documentation.
+        """
+        l = len(self)
+        return (type(ind) is slice
+                or isinstance(ind, Number) and -l <= ind < l
+                or isinstance(ind, (list, np.ndarray))
+                and len({i if i >= 0 else l+i for i in ind if -l <= i < l}) == len(ind))
+
+
+def dual_pairing(left: VectorArray, right: VectorArray, pairwise: bool = False) -> NDArray:
+    result = left._dual_pairing(right, pairwise)
+    if result is NotImplemented:
+        result = right._dual_pairing(left, pairwise)
+    if result is NotImplemented:
         raise NotImplementedError('No dual pairing possible.')
     return result
 
@@ -54,6 +174,10 @@ class VectorSpace(ABC):
 
     @abstractmethod
     def empty(self, size_hint=0) -> VectorArray:
+        pass
+
+    @abstractmethod
+    def zeros(self, count: int = 1) -> VectorArray:
         pass
 
     @abstractmethod
@@ -70,6 +194,10 @@ class VectorSpace(ABC):
 
     @abstractmethod
     def __contains__(self, element: 'VectorArray') -> bool:
+        pass
+
+    @abstractmethod
+    def __eq__(self, other: 'VectorSpace') -> bool:
         pass
 
     @abstractmethod
