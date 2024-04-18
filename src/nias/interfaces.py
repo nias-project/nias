@@ -238,6 +238,7 @@ class VectorSpaceWithBasis(VectorSpace):
 
 
 class Norm(ABC):
+    space: VectorSpace
 
     @abstractmethod
     def __call__(self, U: VectorArray) -> NDArray:
@@ -257,18 +258,18 @@ class SesquilinearForm(ABC):
     right_space: VectorSpace
 
     @abstractmethod
-    def __call__(self, left: VectorArray, right: VectorArray) -> NDArray:
+    def apply(self, left: VectorArray, right: VectorArray, pairwise: bool = False) -> NDArray:
         pass
 
-    @abstractmethod
-    def as_operator(self) -> 'LinearOperator':
-        pass
+    def __call__(self, left: VectorArray, right: VectorArray) -> NDArray:
+        return self.apply(left, right)
 
 
 class InnerProduct(SesquilinearForm):
 
     def induced_norm(self) -> Norm:
-        raise NotImplementedError
+        from nias.base.operators import InnerProductBasedNorm
+        return InnerProductBasedNorm(self)
 
 
 class HilbertSpace(NormedSpace):
@@ -302,10 +303,12 @@ class Operator(ABC):
         pass
 
     def __add__(self, other: 'Operator') -> 'Operator':
-        raise NotImplementedError
+        from nias.base.operators import lincomb
+        return lincomb([self, other], [1., 1.])
 
     def __mul__(self, other: Scalar) -> 'Operator':
-        raise NotImplementedError
+        from nias.base.operators import lincomb
+        return lincomb([self], [other])
 
     def __matmul__(self, other: 'Operator') -> 'Operator':
         raise NotImplementedError
@@ -316,6 +319,14 @@ class LinearOperator(Operator):
     @abstractmethod
     def apply_transpose(self, V: VectorArray) -> VectorArray:
         pass
+
+    def as_sesquilinear_form(self) -> SesquilinearForm:
+        from nias.base.operators import OperatorBasedSesquilinearForm
+        return OperatorBasedSesquilinearForm(self)
+
+    def as_inner_product(self) -> InnerProduct:
+        from nias.base.operators import OperatorBasedInnerProduct
+        return OperatorBasedInnerProduct(self)
 
 
 class HSLinearOperator(LinearOperator):
