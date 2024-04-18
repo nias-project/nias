@@ -15,6 +15,8 @@ from nias.interfaces import ArrayLike, Indices, VectorArray, VectorSpace
 
 class NumpyBasedVectorArrayImpl(VectorArrayImpl):
 
+    dim: int
+
     @abstractmethod
     def create_impl(self, data: NDArray) -> 'NumpyBasedVectorArrayImpl':
         pass
@@ -52,8 +54,7 @@ class NumpyBasedVectorArrayImpl(VectorArrayImpl):
         pass
 
     def is_compatible_array(self, other: 'VectorArrayImpl') -> bool:
-        return (isinstance(other, NumpyVectorArrayImpl)
-                    and self.to_numpy(False, None).shape[1] == other.to_numpy(False, None).shape[1])
+        return (isinstance(other, NumpyVectorArrayImpl) and self.dim == other.dim)
 
     def setitem(self, other: 'VectorArrayImpl', ind: Indices, oind: Indices):
         self.set_from_numpy(other.to_numpy(False, oind), ind)
@@ -95,6 +96,10 @@ class NumpyVectorArrayImpl(NumpyBasedVectorArrayImpl):
         self._array = array
         self._len = len(array) if l is None else l
         self.scalar_type = array.dtype
+
+    @property
+    def dim(self) -> int:
+        return self._array.shape[1]
 
     def create_impl(self, data: NDArray) -> 'NumpyVectorArrayImpl':
         return type(self)(data)
@@ -190,13 +195,13 @@ class NumpyVectorArray(VectorArrayBase):
     impl: NumpyBasedVectorArrayImpl
 
     def _to_numpy(self, ensure_copy=False) -> NDArray:
-        return self._impl.to_numpy(ensure_copy, self._ind)
+        return self.impl.to_numpy(ensure_copy, self._ind)
 
     def _set_from_numpy(self, other: NDArray) -> None:
-        self._impl.set_from_numpy(other, self._ind)
+        self.impl.set_from_numpy(other, self._ind)
 
     def _axpy_from_numpy(self, alpha: ArrayLike, x: NDArray) -> None:
-        self._impl.axpy_from_numpy(alpha, x, self._ind)
+        self.impl.axpy_from_numpy(alpha, x, self._ind)
 
     def __str__(self):
         return str(self._to_numpy())
@@ -237,7 +242,7 @@ class NumpyVectorSpace(VectorSpace):
         return self
 
     def __contains__(self, element: VectorArray) -> bool:
-        return isinstance(element, NumpyVectorArray) and element.dim == self.dim
+        return isinstance(element, NumpyVectorArray) and element.impl.dim == self.dim
 
     def __eq__(self, other: 'VectorSpace') -> bool:
         return type(other) is type(self) and self.dim == other.dim
