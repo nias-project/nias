@@ -17,12 +17,12 @@ class VectorArrayBase(VectorArray):
     base = None
     is_view: bool = False
     _impl = None
-    _ind = None
 
     def __init__(self, *, impl=None, base=None, ind=None, _len=None):
         assert ind is None or base is not None
         self.scalar_type = impl.scalar_type
         self.real_scalar_type = impl.real_scalar_type
+        self.ind = ind
         if base is None:
             self._impl = impl
             self._refcount = [1]
@@ -30,7 +30,6 @@ class VectorArrayBase(VectorArray):
         else:
             self.is_view = True
             self.base = base
-            self._ind = ind
             self._len = _len
 
     @property
@@ -47,7 +46,7 @@ class VectorArrayBase(VectorArray):
 
     def copy(self) -> Self:
         if self.is_view:
-            return type(self)(impl=self.impl.copy(self._ind))
+            return type(self)(impl=self.impl.copy(self.ind))
         else:
             C = type(self)(impl=self.impl)
             C._refcount = self._refcount
@@ -64,7 +63,7 @@ class VectorArrayBase(VectorArray):
         self._copy_impl_if_multiple_refs()
         if remove_from_other:
             other._copy_impl_if_multiple_refs()
-        self.impl.append(other.impl, remove_from_other, other._ind)
+        self.impl.append(other.impl, remove_from_other, other.ind)
         self._len += other._len
         if remove_from_other:
             if other.is_view:
@@ -103,18 +102,18 @@ class VectorArrayBase(VectorArray):
             view_len = len(ind)
 
         if self.is_view:
-            ind = self._sub_index(self.base._len, self._ind, ind)
+            ind = self._sub_index(self.base._len, self.ind, ind)
             return type(self)(impl=self.impl, base=self.base, ind=ind, _len=view_len)
         else:
             return type(self)(impl=self.impl, base=self, ind=ind, _len=view_len)
 
     def __setitem__(self, indices: ArrayLike, other: VectorArray) -> None:
-        assert not self.is_view or self.base.check_ind_unique(self._ind)
+        assert not self.is_view or self.base.check_ind_unique(self.ind)
         assert isinstance(other, VectorArrayBase)
         assert self.is_compatible_array(other)
         assert len(self) == len(other) or len(other) == 1
         self._copy_impl_if_multiple_refs()
-        self.impl.setitem(other.impl, self._ind, other._ind)
+        self.impl.setitem(other.impl, self.ind, other.ind)
 
     def __delitem__(self, ind: ArrayLike):
         if self.is_view:
@@ -125,51 +124,51 @@ class VectorArrayBase(VectorArray):
         self._len = len(self._impl)
 
     def scal(self, alpha: ArrayLike) -> None:
-        assert not self.is_view or self.base.check_ind_unique(self._ind)
+        assert not self.is_view or self.base.check_ind_unique(self.ind)
         assert isinstance(alpha, Scalar) \
             or isinstance(alpha, np.ndarray) and alpha.shape == (len(self),)
         self._copy_impl_if_multiple_refs()
-        self.impl.scal(alpha, self._ind)
+        self.impl.scal(alpha, self.ind)
 
     def axpy(self, alpha: ArrayLike, x: VectorArray) -> None:
-        assert not self.is_view or self.base.check_ind_unique(self._ind)
+        assert not self.is_view or self.base.check_ind_unique(self.ind)
         assert isinstance(alpha, Scalar) \
             or isinstance(alpha, np.ndarray) and alpha.shape == (len(self),)
         assert isinstance(x, VectorArrayBase)
         assert self.is_compatible_array(x)
         assert len(self) == len(x) or len(x) == 1
         self._copy_impl_if_multiple_refs()
-        self.impl.axpy(alpha, x.impl, self._ind, x._ind)
+        self.impl.axpy(alpha, x.impl, self.ind, x.ind)
 
     def lincomb(self, coefficients: ArrayLike) -> VectorArray:
         assert 1 <= coefficients.ndim <= 2
         if coefficients.ndim == 1:
             coefficients = coefficients[np.newaxis, ...]
         assert coefficients.shape[-1] == len(self)
-        return type(self)(impl=self.impl.lincomb(coefficients, self._ind))
+        return type(self)(impl=self.impl.lincomb(coefficients, self.ind))
 
     @property
     def real(self) -> VectorArray:
         if not self.is_complex:
             return self.copy()
-        impl = self.impl.real(self._ind)
+        impl = self.impl.real(self.ind)
         return type(self)(impl=impl)
 
     @property
     def imag(self) -> VectorArray:
-        return type(self)(impl=self.impl.imag(self._ind))
+        return type(self)(impl=self.impl.imag(self.ind))
 
     def conj(self) -> VectorArray:
         if not self.is_complex:
             return self.copy()
-        impl = self.impl.conj(self._ind)
+        impl = self.impl.conj(self.ind)
         return type(self)(impl=impl)
 
     def _dual_pairing(self, other: VectorArray, pairwise: bool) -> NDArray:
         assert isinstance(other, VectorArrayBase)
         assert self.is_compatible_array(other)
         assert not pairwise or len(self) == len(other)
-        return self.impl.dual_pairing(other.impl, self._ind, other._ind, pairwise)
+        return self.impl.dual_pairing(other.impl, self.ind, other.ind, pairwise)
 
     def _copy_impl_if_multiple_refs(self):
         array = self.base if self.is_view else self

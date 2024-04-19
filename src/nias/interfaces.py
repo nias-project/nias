@@ -34,6 +34,7 @@ class VectorArray(ABC):
     """
 
     base: Union['VectorArray', None]
+    ind: Indices
     is_view: bool
     scalar_type: type
 

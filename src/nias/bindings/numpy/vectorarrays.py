@@ -195,13 +195,13 @@ class NumpyVectorArray(VectorArrayBase):
     impl: NumpyBasedVectorArrayImpl
 
     def _to_numpy(self, ensure_copy=False) -> NDArray:
-        return self.impl.to_numpy(ensure_copy, self._ind)
+        return self.impl.to_numpy(ensure_copy, self.ind)
 
     def _set_from_numpy(self, other: NDArray) -> None:
-        self.impl.set_from_numpy(other, self._ind)
+        self.impl.set_from_numpy(other, self.ind)
 
     def _axpy_from_numpy(self, alpha: ArrayLike, x: NDArray) -> None:
-        self.impl.axpy_from_numpy(alpha, x, self._ind)
+        self.impl.axpy_from_numpy(alpha, x, self.ind)
 
     def __str__(self):
         return str(self._to_numpy())
