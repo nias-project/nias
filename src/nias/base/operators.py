@@ -2,13 +2,17 @@
 # Copyright NiAS developers and contributors. All rights reserved.
 # License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 
+from typing import overload
+
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from nias.base.linear_solvers import default_factory
 from nias.interfaces import (
     HSLinearOperator,
     InnerProduct,
     LinearOperator,
+    LinearSolverFactory,
     Norm,
     Operator,
     SesquilinearForm,
@@ -17,7 +21,20 @@ from nias.interfaces import (
 )
 
 
-def lincomb(operators: list[Operator], coefficients: ArrayLike) -> LinearOperator:
+@overload
+def lincomb(operators: list[Operator], coefficients: ArrayLike) -> Operator:
+    ...
+
+@overload
+def lincomb(operators: list[LinearOperator], coefficients: ArrayLike) -> LinearOperator:
+    ...
+
+@overload
+def lincomb(operators: list[HSLinearOperator], coefficients: ArrayLike) -> HSLinearOperator:
+    ...
+
+
+def lincomb(operators, coefficients):
     ops = []
     coeffs = []
     for o, c in zip(operators, coefficients):
@@ -33,7 +50,7 @@ def lincomb(operators: list[Operator], coefficients: ArrayLike) -> LinearOperato
     elif all(isinstance(o, LinearOperator) for o in ops):
         return LinearLincombOperator(ops, coeffs)
     else:
-        return LinearOperator(ops, coeffs)
+        return LincombOperator(ops, coeffs)
 
 
 class LincombOperator(Operator):
@@ -107,9 +124,6 @@ class OperatorBasedSesquilinearForm(SesquilinearForm):
     def apply(self, left: VectorArray, right: VectorArray, pairwise: bool = False) -> NDArray:
         return dual_pairing(left, self.operator.apply(right), pairwise=pairwise)
 
-    def as_operator(self) -> 'LinearOperator':
-        return self.operator
-
 
 class OperatorBasedInnerProduct(OperatorBasedSesquilinearForm, InnerProduct):
 
@@ -123,3 +137,46 @@ class InnerProductBasedNorm(Norm):
 
     def __call__(self, U: VectorArray) -> NDArray:
         return np.sqrt(self.inner_product.apply(U, U, pairwise=True))
+
+
+@overload
+def inverse(operator: LinearOperator, context: str = '',
+            solver_factory: LinearSolverFactory = default_factory) -> LinearOperator:
+    ...
+
+@overload
+def inverse(operator: HSLinearOperator, context: str = '',
+            solver_factory: LinearSolverFactory = default_factory) -> HSLinearOperator:
+    ...
+
+
+def inverse(operator):
+    assert isinstance(operator, LinearOperator)
+    if isinstance(operator, HSLinearOperator):
+        return InverseHSLinearOperator(operator)
+    elif isinstance(operator, LinearOperator):
+        return InverseLinearOperator(operator)
+    else:
+        raise NotImplementedError
+
+
+class InverseLinearOperator(LinearOperator):
+
+    def __init__(self, operator: LinearOperator, context: str = '',
+                 solver_factory: LinearSolverFactory = default_factory):
+        self.operator = operator
+        self.solver = default_factory.get_solver(operator, context)
+        self.range = operator.source
+        self.source = operator.range
+
+    def apply(self, U: VectorArray) -> VectorArray:
+        assert U in self.source
+        return self.solver.solve(U)
+
+    def apply_transpose(self, V: VectorArray) -> VectorArray:
+        assert V in self.range
+        return self.solver.solve_transposed(V)
+
+
+class InverseHSLinearOperator(InverseLinearOperator, HSLinearOperator):
+    pass

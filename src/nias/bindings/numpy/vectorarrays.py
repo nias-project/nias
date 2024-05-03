@@ -10,7 +10,13 @@ from numpy.typing import NDArray
 from scipy.sparse import issparse
 
 from nias.base.vectorarrays import VectorArrayBase, VectorArrayImpl
-from nias.interfaces import ArrayLike, Indices, VectorArray, VectorSpace
+from nias.interfaces import (
+    ArrayLike,
+    Indices,
+    VectorArray,
+    VectorSpace,
+    VectorSpaceWithBasis,
+)
 
 
 class NumpyBasedVectorArrayImpl(VectorArrayImpl):
@@ -207,22 +213,22 @@ class NumpyVectorArray(VectorArrayBase):
         return str(self._to_numpy())
 
 
-class NumpyVectorSpace(VectorSpace):
+class NumpyBasedVectorSpace(VectorSpaceWithBasis):
 
     def __init__(self, dim: int):
         self.dim = int(dim)
 
-    def empty(self, size_hint=0) -> NumpyVectorArray:
-        return NumpyVectorArray(impl=NumpyVectorArrayImpl(np.empty((size_hint, self.dim)), l=0))
+    @abstractmethod
+    def _make_impl(self, data: NDArray, l: int | None = None) -> NumpyBasedVectorArrayImpl:
+        pass
 
-    def zeros(self, count=1) -> NumpyVectorArray:
-        assert count >= 0
-        return NumpyVectorArray(impl=NumpyVectorArrayImpl(np.zeros((count, self.dim)), count))
+    def empty(self, size_hint=0) -> NumpyVectorArray:
+        return NumpyVectorArray(impl=self._make_impl(np.empty((size_hint, self.dim)), l=0))
 
     def random(self, count: int = 1, distribution: str = 'uniform', seed=None, **kwargs) -> NumpyVectorArray:
         assert count >= 0
         return NumpyVectorArray(
-            impl=NumpyVectorArrayImpl(_create_random_values((count, self.dim), distribution, seed=seed, **kwargs))
+            impl=self._make_impl(_create_random_values((count, self.dim), distribution, seed=seed, **kwargs))
         )
 
     def from_data(self, data) -> NumpyVectorArray:
@@ -236,19 +242,45 @@ class NumpyVectorSpace(VectorSpace):
             assert data.ndim == 1
             data = np.reshape(data, (1, -1))
         assert data.shape[1] == self.dim
-        return NumpyVectorArray(impl=NumpyVectorArrayImpl(data))
-
-    def antidual_space(self) -> 'NumpyVectorSpace':
-        return self
+        return NumpyVectorArray(impl=self._make_impl(data))
 
     def __contains__(self, element: VectorArray) -> bool:
         return isinstance(element, NumpyVectorArray) and element.impl.dim == self.dim
 
+    def __ge__(self, other: 'VectorSpace') -> bool:
+        return isinstance(other, NumpyBasedVectorSpace) and self.dim == other.dim
+
+    def from_numpy(self, data, ensure_copy=False) -> NumpyVectorArray:
+        if ensure_copy:
+            data = data.copy()
+        return self.from_data(data)
+
+    def to_numpy(self, U: VectorArray, ensure_copy=False) -> NDArray:
+        assert U in self
+        return U._to_numpy(ensure_copy)
+
+    def l2_norm(self, U: VectorArray) -> NDArray:
+        assert U in self
+        return np.linalg.norm(U._to_numpy(), axis=1)
+
+    def amax(self, U: VectorArray) -> (NDArray, NDArray):
+        assert U in self
+        A = np.abs(U._to_numpy())
+        max_ind = np.argmax(A, axis=1)
+        max_val = A[np.arange(len(A)), max_ind]
+        return max_ind, max_val
+
+
+class NumpyVectorSpace(NumpyBasedVectorSpace):
+
+    def _make_impl(self, data: NDArray, l: int | None = None) -> NumpyVectorArrayImpl:
+        return NumpyVectorArrayImpl(data, l=l)
+
+    def antidual_space(self) -> 'NumpyVectorSpace':
+        return self
+
     def __eq__(self, other: 'VectorSpace') -> bool:
         return type(other) is type(self) and self.dim == other.dim
-
-    def __ge__(self, other: 'VectorSpace') -> bool:
-        return isinstance(other, NumpyVectorSpace) and self.dim == other.dim
 
     def __hash__(self):
         return hash(self.dim)

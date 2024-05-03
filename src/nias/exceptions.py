@@ -5,3 +5,7 @@
 
 class AccuracyError(Exception):
     """Is raised if the result of a computation is inaccurate."""
+
+
+class InversionError(Exception):
+    pass

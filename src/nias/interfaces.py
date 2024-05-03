@@ -210,6 +210,11 @@ class VectorSpace(ABC):
 
 
 class VectorSpaceWithBasis(VectorSpace):
+    """Vector space with a chosen basis.
+
+    `antidual_space` is assumed to be equipped with antidual basis.
+    """
+
     dim: int
 
     @abstractmethod
@@ -276,8 +281,9 @@ class InnerProduct(SesquilinearForm):
 class HilbertSpace(NormedSpace):
     inner_product: InnerProduct
 
+    @abstractmethod
     def riesz(self, U: VectorArray) -> VectorArray:
-        self.inner_product.as_operator().apply(U)
+        pass
 
 
 class HilbertSpaceWithBasis(HilbertSpace, VectorSpaceWithBasis):
@@ -314,6 +320,9 @@ class Operator(ABC):
     def __matmul__(self, other: 'Operator') -> 'Operator':
         raise NotImplementedError
 
+    def assemble(self) -> 'Operator':
+        return self
+
 
 class LinearOperator(Operator):
 
@@ -341,5 +350,24 @@ class HSLinearOperator(LinearOperator):
 class LinearSolver(ABC):
 
     @abstractmethod
-    def solve(self, lhs: LinearOperator, rhs: VectorArray) -> VectorArray:
+    def __init__(self, lhs: LinearOperator, options: dict):
+        pass
+
+    @abstractmethod
+    def set_lhs(self, lhs: LinearOperator) -> None:
+        pass
+
+    @abstractmethod
+    def solve(self, rhs: VectorArray) -> VectorArray:
+        pass
+
+    @abstractmethod
+    def solve_transposed(self, rhs: VectorArray) -> VectorArray:
+        pass
+
+
+class LinearSolverFactory(ABC):
+
+    @abstractmethod
+    def get_solver(self, lhs: LinearOperator, context: str = '') -> LinearSolver:
         pass

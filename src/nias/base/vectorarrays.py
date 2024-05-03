@@ -9,7 +9,19 @@ from typing import Self
 import numpy as np
 from numpy.typing import NDArray
 
-from nias.interfaces import ArrayLike, Indices, Scalar, VectorArray
+from nias.base.linear_solvers import default_factory
+from nias.interfaces import (
+    ArrayLike,
+    HilbertSpace,
+    HilbertSpaceWithBasis,
+    Indices,
+    LinearOperator,
+    LinearSolverFactory,
+    Scalar,
+    VectorArray,
+    VectorSpace,
+    VectorSpaceWithBasis,
+)
 
 
 class VectorArrayBase(VectorArray):
@@ -262,3 +274,79 @@ class VectorArrayImpl:
     @abstractmethod
     def dual_pairing(self, other: 'VectorArrayImpl', ind: Indices, oind: Indices, pairwise: bool) -> NDArray:
         pass
+
+
+class HilbertSpaceFromProductOperator(HilbertSpace):
+
+    def __init__(self, algebraic_space: VectorSpace, product_operator: LinearOperator,
+                 dual_product_operator: LinearOperator | None = None,
+                 solver_factory: LinearSolverFactory = default_factory):
+        assert product_operator.source_space >= algebraic_space
+        assert product_operator.range_space <= algebraic_space.antidual_space
+        assert algebraic_space.antidual_space >= product_operator.range_space
+        if dual_product_operator is None:
+            from nias.base.operators import inverse
+            dual_product_operator = inverse(product_operator, context='dual_product', solver_factory=solver_factory)
+        assert dual_product_operator.source_space >= algebraic_space.antidual_space
+        assert dual_product_operator.range_space <= algebraic_space
+        self.algebraic_space, self.product_operator, self.dual_product_operator \
+            = algebraic_space, product_operator, dual_product_operator
+        from nias.base.operators import OperatorBasedInnerProduct
+        self.inner_product = OperatorBasedInnerProduct(product_operator)
+        self.norm = self.inner_product.induced_norm()
+        self.dim = algebraic_space.dim
+
+    def empty(self, size_hint=0) -> VectorArray:
+        return self.algebraic_space.empty(size_hint)
+
+    def zeros(self, count: int = 1) -> VectorArray:
+        return self.algebraic_space.zeros(count)
+
+    def random(self, count: int = 1) -> VectorArray:
+        return self.algebraic_space.random(count)
+
+    def from_data(self, data) -> VectorArray:
+        return self.algebraic_space.from_data(data)
+
+    @property
+    def antidual_space(self):
+        return type(self)(self.algebraic_space, self.dual_product_operator, self.product_operator)
+
+    def __contains__(self, element: 'VectorArray') -> bool:
+        return element in self.algebraic_space
+
+    def __eq__(self, other: 'VectorSpace') -> bool:
+        return isinstance(other, HilbertSpaceFromProductOperator) \
+            and other.algebraic_space == self.algebraic_space \
+            and other.inner_product_operator == self.inner_product_operator
+
+    def __ge__(self, other: 'VectorSpace') -> bool:
+        try:
+            other = other.algebraic_space
+        except AttributeError:
+            pass
+        return self.algebraic_space >= other
+
+    def riesz(self, U: VectorArray) -> VectorArray:
+        assert U in self.algebraic_space
+        return self.inner_product_operator.apply(U)
+
+
+class HilbertSpaceWithBasisFromProductOperator(HilbertSpaceFromProductOperator, HilbertSpaceWithBasis):
+
+    def __init__(self, algebraic_space: VectorSpaceWithBasis, product_operator: LinearOperator,
+                 dual_product_operator: LinearOperator | None = None,
+                 solver_factory: LinearSolverFactory = default_factory):
+        super().__init__(algebraic_space, product_operator, dual_product_operator, solver_factory)
+
+    def from_numpy(self, data, ensure_copy=False) -> VectorArray:
+        return self.algebraic_space.from_numpy(data, ensure_copy=ensure_copy)
+
+    def to_numpy(self, U: VectorArray, ensure_copy=False) -> NDArray:
+        return self.algebraic_space.to_numpy(U, ensure_copy=ensure_copy)
+
+    def l2_norm(self, U: VectorArray) -> NDArray:
+        return self.algebraic_space.l2_norm(U)
+
+    def amax(self, U: VectorArray) -> (NDArray, NDArray):
+        return self.algebraic_space.amax(U)
