@@ -68,7 +68,7 @@ class SpsolveSolver(LinearSolver):
 
 
 
-default_factory.register_solver((NumpyMatrixOperator,), 'scipy-spsolve',
+default_factory.register_solver((NumpyMatrixOperator,), 'scipy-spsolve', '10',
                                 SpsolveSolver, {'keep_factorization': True, 'permc_spec': 'COLAMD'})
 
 
