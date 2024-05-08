@@ -117,6 +117,84 @@ class HSLinearLincombOperator(LinearLincombOperator, HSLinearOperator):
         return V
 
 
+@overload
+def concat(operators: list[Operator]) -> Operator:
+    ...
+
+@overload
+def concat(operators: list[LinearOperator]) -> LinearOperator:
+    ...
+
+@overload
+def concat(operators: list[HSLinearOperator]) -> HSLinearOperator:
+    ...
+
+
+def concat(operators):
+    ops = []
+    for o in operators:
+        if isinstance(o, IdentityOperator):
+            pass
+        elif isinstance(o, ConcatenationOperator):
+            ops.extend(o.operators)
+        else:
+            ops.append(o)
+
+    if not ops:  # all IdentityOperators
+        return operators[0]
+    if len(ops) == 1:
+        return ops[0]
+
+    if all(isinstance(o, HSLinearOperator) for o in ops):
+        return HSConcatenationOperator(ops)
+    elif all(isinstance(o, LinearOperator) for o in ops):
+        return LinearConcatenationOperator(ops)
+    else:
+        return ConcatenationOperator(ops)
+
+
+class ConcatenationOperator(Operator):
+    def __init__(self, operators: list[Operator]):
+        assert len(operators) >= 1
+        assert all(op.source_space >= prev_op.range_space
+                   for op, prev_op in zip(operators, operators[1:]))
+        self.operators = list(operators)
+        self.range_space = operators[0].range_space
+        self.source_space = operators[-1].source_space
+
+    def apply(self, U: VectorArray) -> VectorArray:
+        assert U in self.source_space
+        for op in self.operators[::-1]:
+            U = op.apply(U)
+        return U
+
+
+class LinearConcatenationOperator(ConcatenationOperator, LinearOperator):
+
+    def __init__(self, operators: list[LinearOperator]):
+        super().__init__(operators)
+        assert all(isinstance(o, LinearOperator) for o in operators)
+
+    def apply_transpose(self, V: VectorArray) -> VectorArray:
+        assert V in self.range_space.antidual_space
+        for op in self.operators:
+            V = op.apply_transpose(V)
+        return V
+
+
+class HSConcatenationOperator(LinearConcatenationOperator, HSLinearOperator):
+
+    def __init__(self, operators: list[HSLinearOperator]):
+        super().__init__(operators)
+        assert all(isinstance(o, HSLinearOperator) for o in operators)
+
+    def apply_adjoint(self, V: VectorArray) -> VectorArray:
+        assert V in self.range_space
+        for op in self.operators:
+            V = op.apply_adjoint(V)
+        return V
+
+
 class OperatorBasedSesquilinearForm(SesquilinearForm):
 
     def __init__(self, operator: LinearOperator):

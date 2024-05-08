@@ -319,7 +319,8 @@ class Operator(ABC):
         return lincomb([self], [other])
 
     def __matmul__(self, other: 'Operator') -> 'Operator':
-        raise NotImplementedError
+        from nias.base.operators import concat
+        return concat([self, other])
 
     def assemble(self) -> 'Operator':
         return self
