@@ -9,6 +9,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from nias.base.linear_solvers import default_factory
 from nias.interfaces import (
+    HilbertSpace,
     HSLinearOperator,
     InnerProduct,
     LinearOperator,
@@ -18,6 +19,7 @@ from nias.interfaces import (
     Operator,
     SesquilinearForm,
     VectorArray,
+    VectorSpace,
     dual_pairing,
 )
 
@@ -156,6 +158,9 @@ def inverse(operator: Operator, context: str = '', solver_factory: LinearSolverF
         from nias.base.linear_solvers import default_factory
         solver_factory = default_factory
 
+    if isinstance(operator, IdentityOperator):
+        return operator
+
     solver = solver_factory.get_solver(operator, context)
 
     if isinstance(operator, HSLinearOperator):
@@ -184,3 +189,39 @@ class InverseLinearOperator(LinearOperator):
 
 class InverseHSLinearOperator(InverseLinearOperator, HSLinearOperator):
     pass
+
+
+@overload
+def identity(space: VectorSpace) -> Operator:
+    ...
+
+@overload
+def identity(space: HilbertSpace) -> Operator:
+    ...
+
+def identity(space):
+    if isinstance(space, HilbertSpace):
+        return IdentityOperator(space)
+    else:
+        return HSIdentityOperator(space)
+
+
+class IdentityOperator(LinearOperator):
+
+    def __init__(self, space):
+        self.space = self.range_space = self.source_space = space
+
+    def apply(self, U: VectorArray) -> VectorArray:
+        assert U in self.space
+        return U.copy()
+
+    def apply_transpose(self, V: VectorArray) -> VectorArray:
+        assert V in self.range_space.antidual_space
+        return V.copy()
+
+
+class HSIdentityOperator(IdentityOperator, HSLinearOperator):
+
+    def apply_adjoint(self, V: VectorArray) -> VectorArray:
+        assert V in self.range_space
+        return V.copy()
