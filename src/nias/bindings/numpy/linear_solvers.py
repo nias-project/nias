@@ -6,7 +6,7 @@ import numpy as np
 from scipy.sparse.linalg import splu, spsolve
 
 from nias.base.linear_solvers import default_factory
-from nias.base.operators import LincombOperator
+from nias.base.operators import IdentityOperator, LincombOperator
 from nias.bindings.numpy.operators import NumpyMatrixOperator, assemble_lincomb
 from nias.exceptions import InversionError
 from nias.interfaces import LinearOperator, LinearSolver, VectorArray
@@ -23,8 +23,19 @@ class SpsolveSolver(LinearSolver):
 
     def set_lhs(self, lhs: LinearOperator) -> None:
         if isinstance(lhs, LincombOperator):
-            assert all(isinstance(o, NumpyMatrixOperator) for o in lhs.operators)
-            lhs = assemble_lincomb(lhs.operators, lhs.coefficients)
+            # TODO: move this somewhere else
+            assert all(isinstance(o, (IdentityOperator, NumpyMatrixOperator)) for o in lhs.operators)
+            identity_shift = 0
+            ops, coeffs = [], []
+            for o, c in zip(lhs.operators, lhs.coefficients):
+                if isinstance(o, IdentityOperator):
+                    identity_shift += c
+                else:
+                    ops.append(o)
+                    coeffs.append(c)
+            if not ops:
+                raise NotImplementedError
+            lhs = assemble_lincomb(ops, coeffs, identity_shift=identity_shift)
         assert isinstance(lhs, NumpyMatrixOperator)
         self.lhs = lhs
 
