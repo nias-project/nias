@@ -314,9 +314,15 @@ class Operator(ABC):
         from nias.base.operators import lincomb
         return lincomb([self, other], [1., 1.])
 
+    def __sub__(self, other: 'Operator') -> 'Operator':
+        from nias.base.operators import lincomb
+        return lincomb([self, other], [1., -1.])
+
     def __mul__(self, other: Scalar) -> 'Operator':
         from nias.base.operators import lincomb
         return lincomb([self], [other])
+
+    __rmul__ = __mul__
 
     def __matmul__(self, other: 'Operator') -> 'Operator':
         from nias.base.operators import concat
