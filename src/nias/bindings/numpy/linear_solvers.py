@@ -3,6 +3,8 @@
 # License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 
 import numpy as np
+from scipy.linalg import lu_factor, lu_solve
+from scipy.linalg.lapack import get_lapack_funcs
 from scipy.sparse.linalg import splu, spsolve
 
 from nias.base.linear_solvers import default_factory
@@ -12,13 +14,13 @@ from nias.exceptions import InversionError
 from nias.interfaces import LinearOperator, LinearSolver, VectorArray
 
 
-class SpsolveSolver(LinearSolver):
+class DirectSolver(LinearSolver):
 
     def __init__(self, lhs: LinearOperator, keep_factorization: bool,
-                 permc_spec: str):
-        self.keep_factorization = keep_factorization
+                 permc_spec: str, check_finite: bool, check_cond: bool):
+        self.keep_factorization, self.permc_spec, self.check_finite, self.check_cond = \
+            keep_factorization, permc_spec, check_finite, check_cond
         self.factorization = None
-        self.permc_spec = permc_spec
         self.set_lhs(lhs)
 
     def set_lhs(self, lhs: LinearOperator) -> None:
@@ -44,6 +46,21 @@ class SpsolveSolver(LinearSolver):
         matrix = self.lhs.matrix
         V = self.lhs.range_space.to_numpy(rhs)
         promoted_type = np.promote_types(matrix.dtype, V.dtype)
+
+        if not self.lhs.sparse:
+            if self.factorization is None:
+                try:
+                    self.factorization = lu_factor(matrix, check_finite=self.check_finite)
+                except np.linalg.LinAlgError as e:
+                    raise InversionError(f'{type(e)!s}: {e!s}') from e
+                if self.check_cond:
+                    gecon = get_lapack_funcs('gecon', self.factorization)
+                    rcond, _ = gecon(self.factorization[0], np.linalg.norm(matrix, ord=1), norm='1')
+                    if rcond < np.finfo(np.float64).eps:
+                        self.logger.warning(f'Ill-conditioned matrix (rcond={rcond:.6g}) in apply_inverse: '
+                                            'result may not be accurate.')
+            R = lu_solve(self.factorization, V.T, check_finite=self.check_finite).T
+            return self.lhs.source_space.from_numpy(R)
 
         try:
             # maybe remove unusable factorization:
@@ -79,8 +96,11 @@ class SpsolveSolver(LinearSolver):
 
 
 
-default_factory.register_solver((NumpyMatrixOperator,), 'scipy-spsolve', '10',
-                                SpsolveSolver, {'keep_factorization': True, 'permc_spec': 'COLAMD'})
+default_factory.register_solver(
+    (NumpyMatrixOperator, IdentityOperator), 'scipy-spsolve', '10',
+    DirectSolver,
+    {'keep_factorization': True, 'permc_spec': 'COLAMD', 'check_finite': True, 'check_cond': True}
+)
 
 
 # unfortunately, this is necessary, as scipy does not
