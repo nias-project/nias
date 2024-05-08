@@ -12,6 +12,7 @@ from nias.interfaces import (
     HSLinearOperator,
     InnerProduct,
     LinearOperator,
+    LinearSolver,
     LinearSolverFactory,
     Norm,
     Operator,
@@ -150,31 +151,34 @@ def inverse(operator: HSLinearOperator, context: str = '',
     ...
 
 
-def inverse(operator):
-    assert isinstance(operator, LinearOperator)
+def inverse(operator: Operator, context: str = '', solver_factory: LinearSolverFactory | None = None):
+    if solver_factory is None:
+        from nias.base.linear_solvers import default_factory
+        solver_factory = default_factory
+
+    solver = solver_factory.get_solver(operator, context)
+
     if isinstance(operator, HSLinearOperator):
-        return InverseHSLinearOperator(operator)
+        return InverseHSLinearOperator(operator, solver)
     elif isinstance(operator, LinearOperator):
-        return InverseLinearOperator(operator)
+        return InverseLinearOperator(operator, solver)
     else:
         raise NotImplementedError
 
 
 class InverseLinearOperator(LinearOperator):
 
-    def __init__(self, operator: LinearOperator, context: str = '',
-                 solver_factory: LinearSolverFactory = default_factory):
-        self.operator = operator
-        self.solver = default_factory.get_solver(operator, context)
-        self.range = operator.source
-        self.source = operator.range
+    def __init__(self, operator: LinearOperator, solver: LinearSolver):
+        self.operator, self.solver = operator, solver
+        self.range_space = operator.source_space
+        self.source_space = operator.range_space
 
     def apply(self, U: VectorArray) -> VectorArray:
-        assert U in self.source
+        assert U in self.source_space
         return self.solver.solve(U)
 
     def apply_transpose(self, V: VectorArray) -> VectorArray:
-        assert V in self.range
+        assert V in self.range_space
         return self.solver.solve_transposed(V)
 
 

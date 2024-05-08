@@ -206,6 +206,7 @@ class VectorSpace(ABC):
         """`True` if `other` embeds into `self`."""
 
     def __le__(self, other: 'VectorSpace') -> bool:
+        assert isinstance(other, VectorSpace)
         return other >= self
 
 

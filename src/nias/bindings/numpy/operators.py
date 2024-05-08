@@ -15,8 +15,9 @@ class NumpyMatrixOperator(LinearOperator):
 
     sparse: bool
 
-    def __init__(self, matrix, source_space: VectorSpaceWithBasis | None = None,
-                 range_space: VectorSpaceWithBasis | None = None):
+    def __init__(self, matrix,
+                 range_space: VectorSpaceWithBasis | None = None,
+                 source_space: VectorSpaceWithBasis | None = None):
         assert matrix.ndim <= 2
         if matrix.ndim == 1:
             matrix = np.reshape(matrix, (1, -1))
@@ -39,7 +40,7 @@ class NumpyMatrixOperator(LinearOperator):
         return self.source_space.antidual_space.from_numpy((self.matrix.T @ V.to_numpy().T).T)
 
 
-def assemble_lincomb(self, operators, coefficients, identity_shift=0.):
+def assemble_lincomb(operators, coefficients, identity_shift=0.):
     assert all(isinstance(op, NumpyMatrixOperator) for op in operators)
 
     common_mat_dtype = reduce(np.promote_types,

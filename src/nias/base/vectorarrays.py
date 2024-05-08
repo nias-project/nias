@@ -318,9 +318,10 @@ class HilbertSpaceFromProductOperator(HilbertSpace):
     def __eq__(self, other: 'VectorSpace') -> bool:
         return isinstance(other, HilbertSpaceFromProductOperator) \
             and other.algebraic_space == self.algebraic_space \
-            and other.inner_product_operator == self.inner_product_operator
+            and other.product_operator == self.product_operator
 
     def __ge__(self, other: 'VectorSpace') -> bool:
+        assert isinstance(other, VectorSpace)
         try:
             other = other.algebraic_space
         except AttributeError:
@@ -329,7 +330,7 @@ class HilbertSpaceFromProductOperator(HilbertSpace):
 
     def riesz(self, U: VectorArray) -> VectorArray:
         assert U in self.algebraic_space
-        return self.inner_product_operator.apply(U)
+        return self.product_operator.apply(U)
 
 
 class HilbertSpaceWithBasisFromProductOperator(HilbertSpaceFromProductOperator, HilbertSpaceWithBasis):

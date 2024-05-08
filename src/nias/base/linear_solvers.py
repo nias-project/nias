@@ -32,7 +32,7 @@ class DefaultLinearSolverFactory(LinearSolverFactory):
             base_types = (type(lhs),)
 
         for priority, supported_types, name, solver in self.solvers:
-            if all(isinstance(bt in supported_types) for bt in base_types):
+            if all(issubclass(bt, supported_types) for bt in base_types):
                 return solver(lhs, **self.defaults[name])
 
         raise InversionError(f'No solver known for base types {base_types}')

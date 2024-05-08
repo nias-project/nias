@@ -276,6 +276,7 @@ class NumpyVectorSpace(NumpyBasedVectorSpace):
     def _make_impl(self, data: NDArray, l: int | None = None) -> NumpyVectorArrayImpl:
         return NumpyVectorArrayImpl(data, l=l)
 
+    @property
     def antidual_space(self) -> 'NumpyVectorSpace':
         return self
 
