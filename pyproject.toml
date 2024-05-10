@@ -45,6 +45,11 @@ packages = [
 [tool.hatch.version]
 path = "src/nias/__init__.py"
 
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = "tests"
+python_files = "*.py"
+
 [tool.ruff]
 src = ["src"] # this makes isort behave nicely
 line-length = 120
