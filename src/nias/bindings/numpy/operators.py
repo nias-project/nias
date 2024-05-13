@@ -27,6 +27,7 @@ class NumpyMatrixOperator(LinearOperator):
             range_space = NumpyVectorSpace(matrix.shape[0])
 
         self.matrix = matrix
+        assert False
         self.source_space = source_space
         self.range_space = range_space
         self.sparse = sps.issparse(matrix)
