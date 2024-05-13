@@ -10,8 +10,9 @@ from typer import Typer
 from typer.testing import CliRunner
 
 DEMO_ARGS = (
-    ('gram_schmidt', [10, 5]),
     ('eigs', [10]),
+    ('gram_schmidt', [10, 5]),
+    ('svd', [10, 4]),
 )
 
 
