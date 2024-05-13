@@ -7,6 +7,6 @@ ci_requirements:
 		cd /src && \
 		pip install pip-tools==6.13.0 && \
 		pip-compile --resolver backtracking \
-			$(CI_EXTRAS) \
+			--extra tests \
 			-o requirements-ci.txt \
-		"
+	"
