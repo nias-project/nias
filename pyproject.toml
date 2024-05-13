@@ -27,8 +27,8 @@ classifiers = [
 dependencies = [
   "numpy>=1.20.3,!=1.25.0,<2", # 1.25.0 crashes CI, >=2 breaks API
   "scipy>=1.5.4",
+  "typer",
 ]
-
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -44,6 +44,11 @@ packages = [
 
 [tool.hatch.version]
 path = "src/nias/__init__.py"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = "tests"
+python_files = "*.py"
 
 [tool.ruff]
 src = ["src"] # this makes isort behave nicely
