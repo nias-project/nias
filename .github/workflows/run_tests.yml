@@ -12,6 +12,8 @@ jobs:
         with:
           python-version: '3.11'
           architecture: x64
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install dependencies
