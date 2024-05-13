@@ -30,6 +30,19 @@ dependencies = [
   "typer",
 ]
 
+[project.optional-dependencies]
+tests = [
+  "pytest-cov",
+  "pytest>=7.2.1",
+]
+
+[tool.coverage.run]
+relative_files = true
+source = [
+  "src/nias",
+  "demos",
+]
+
 [tool.hatch.build.targets.sdist]
 include = [
   "/src",
