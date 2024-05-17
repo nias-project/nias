@@ -11,14 +11,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install pypa/build
+      - name: Install hatch
         run: >-
           python3 -m
           pip install
-          build
+          hatch
           --user
+      - name: Bump dev version if needed
+        run: >-
+          VERSION=$(hatch version);
+          if [ "${VERSION#*".dev0"}" != "$VERSION" ] ; then
+            hatch version "$VERSION$(date +%s)"
+          fi;
+          echo "Release version: $(hatch version)"
       - name: Build a binary wheel and a source tarball
-        run: python3 -m build
+        run: hatch build
       - name: Store the distribution packages
         uses: actions/upload-artifact@v3
         with:
