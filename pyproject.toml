@@ -36,8 +36,10 @@ tests = [
   "pytest>=7.2.1",
 ]
 docs = [
-  "sphinx",
+  "hatch",
   "myst-nb",
+  "sphinx",
+  "sphinx-material",
 ]
 
 [tool.coverage.run]

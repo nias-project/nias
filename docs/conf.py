@@ -1,5 +1,6 @@
 # outline for a myst_nb project with sphinx
 # build with: sphinx-build -nW --keep-going -b html . ./_build/html
+import subprocess
 
 # load extensions
 extensions = ['myst_nb']
@@ -7,6 +8,9 @@ extensions = ['myst_nb']
 # specify project details
 master_doc = 'index'
 project = 'NiAS'
+author = 'NiAS Developers and Contributors'
+copyright = 'NiAS Developers and Contributors'
+version = subprocess.run(['hatch', 'version'], capture_output=True).stdout.decode()
 
 # basic build settings
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
@@ -94,3 +98,68 @@ nitpicky = True
 
 # The format to use for text/markdown rendering
 # nb_render_markdown_format = 'commonmark'
+
+html_theme = 'sphinx_material'
+html_theme_options = {
+    'nav_title': 'NiAS Documentation',
+    'globaltoc_depth': 6,
+    'theme_color': 'indigo',
+    'color_primary': 'indigo',
+    'color_accent': 'blue',
+    'repo_url': 'https://github.com/nias-project/nias',
+    'repo_name': 'nias',
+    'logo_icon': '&#xe0e0',
+}
+# The name for this set of Sphinx documents.  If None, it defaults to
+# "<project> v<release> documentation".
+html_title = f'{project} v{version} Manual'
+
+# The name of an image file (within the static path) to place at the top of
+# the sidebar.
+# html_logo = 'TODO'
+
+# The name of an image file to use as favicon.
+# html_favicon = 'TODO'
+
+# Add any paths that contain custom static files (such as style sheets) here,
+# relative to this directory. They are copied after the builtin static files,
+# so a file named "default.css" will overwrite the builtin "default.css".
+# html_static_path = ['_static']
+
+# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
+# using the given strftime format.
+html_last_updated_fmt = '%b %d, %Y'
+
+# If true, SmartyPants will be used to convert quotes and dashes to
+# typographically correct entities.
+# html_use_smartypants = True
+
+# Custom sidebar templates, maps document names to template names.
+# all: "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
+html_sidebars = {
+    '**': ['logo-text.html', 'globaltoc.html', 'searchbox.html']
+}
+# Additional templates that should be rendered to pages, maps page names to
+# template names.
+# html_additional_pages = {
+#    'index': 'indexcontent.html',
+# }
+
+# html_css_files = ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css']
+
+# If false, no module index is generated.
+html_use_modindex = True
+
+# If true, the reST sources are included in the HTML build as _sources/<name>.
+# html_copy_source = True
+
+# If true, an OpenSearch description file will be output, and all pages will
+# contain a <link> tag referring to it.  The value of this option must be the
+# base URL from which the finished HTML is served.
+# html_use_opensearch = ''
+
+# If nonempty, this is the file name suffix for HTML files (e.g. ".html").
+# html_file_suffix = '.html'
+
+# Hide link to page source.
+html_show_sourcelink = False

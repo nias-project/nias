@@ -2,4 +2,4 @@
 # Copyright NiAS developers and contributors. All rights reserved.
 # License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
 
-__version__ = '0.0.2'
+__version__ = '0.0.3.dev0'
