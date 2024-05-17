@@ -35,6 +35,10 @@ tests = [
   "pytest-cov",
   "pytest>=7.2.1",
 ]
+docs = [
+  "sphinx",
+  "myst-nb",
+]
 
 [tool.coverage.run]
 relative_files = true
