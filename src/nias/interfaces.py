@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 Scalar: TypeAlias = int | float | complex | np.number
+
 Indices: TypeAlias = None | int | slice | list[int] | NDArray
 
 

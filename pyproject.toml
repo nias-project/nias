@@ -39,6 +39,7 @@ docs = [
   "hatch",
   "myst-nb",
   "sphinx",
+  "sphinx-autoapi",
   "sphinx-material",
 ]
 
