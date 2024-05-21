@@ -3,7 +3,7 @@
 import subprocess
 
 # load extensions
-extensions = ['myst_nb']
+extensions = ['autoapi.extension', 'myst_nb', 'sphinx.ext.intersphinx']
 
 # specify project details
 master_doc = 'index'
@@ -15,6 +15,25 @@ version = subprocess.run(['hatch', 'version'], capture_output=True).stdout.decod
 # basic build settings
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 nitpicky = True
+
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'python': ('https://docs.python.org/3/', None),
+}
+
+suppress_warnings = ['autoapi']
+
+autoapi_dirs = ['../src']
+autoapi_type = 'python'
+autoapi_keep_files = False
+suppress_warnings = ['autoapi']
+autoapi_member_order = 'groupwise'
+autoapi_options = [
+    'show-inheritance',
+    'show-module-summary',
+    'members',
+    'undoc-members'
+]
 
 ## myst_nb default settings
 
@@ -163,3 +182,19 @@ html_use_modindex = True
 
 # Hide link to page source.
 html_show_sourcelink = False
+
+
+TYPE_ALIASES = ['Indices', 'NDArray', 'ArrayLike', 'Scalar']
+
+
+def resolve_type_aliases(app, env, node, contnode):
+    if (node['refdomain'] == 'py'
+        and node['reftype'] == 'class'
+        and node['reftarget'].split('.')[-1] in TYPE_ALIASES):
+
+        from sphinx.errors import NoUri
+        raise NoUri
+
+
+def setup(app):
+    app.connect('missing-reference', resolve_type_aliases)
