@@ -35,6 +35,10 @@ autoapi_options = [
     'undoc-members'
 ]
 
+myst_enable_extensions = [
+    'amsmath', 'dollarmath',
+]
+
 ## myst_nb default settings
 
 # Custom formats for reading notebook; suffix -> reader
