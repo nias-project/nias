@@ -1,6 +1,12 @@
-# outline for a myst_nb project with sphinx
-# build with: sphinx-build -nW --keep-going -b html . ./_build/html
+# This file is part of the NiAS project (https://github.com/nias-project).
+# Copyright NiAS developers and contributors. All rights reserved.
+# License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
+
+import os
 import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 # load extensions
 extensions = ['autoapi.extension', 'myst_nb', 'sphinx.ext.intersphinx']
@@ -21,6 +27,9 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
 }
 
+import substitutions  # noqa: I001
+rst_epilog = substitutions.substitutions
+
 suppress_warnings = ['autoapi']
 
 autoapi_dirs = ['../src']
@@ -36,8 +45,16 @@ autoapi_options = [
 ]
 
 myst_enable_extensions = [
-    'amsmath', 'dollarmath',
+    'amsmath',
+    'deflist',
+    'dollarmath',
+    'smartquotes',
+    'strikethrough',
+    'substitution',
 ]
+myst_dmath_double_inline = True  # allow $$ .. $$ without surrounding blank lines
+myst_heading_anchors = 3  # automatically adds 'title-of-heading' anchors for headings
+myst_substitutions = substitutions.myst_substitutions
 
 ## myst_nb default settings
 
