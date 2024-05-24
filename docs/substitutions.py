@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # This file is part of the NiAS project (https://github.com/nias-project).
 # Copyright NiAS developers and contributors. All rights reserved.
 # License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
@@ -5,20 +6,36 @@
 
 # define substitutions here in rst syntax
 substitutions = """
-.. |HilbertSpaces| replace:: :class:`HilberSpaces <nias.interfaces.HilbertSpace>`
-.. |HilbertSpace| replace:: :class:`~nias.interfaces.HilbertSpace`
-.. |HilbertSpacesWithBasis| replace:: :class:`HilbertSpacesWithBasis <nias.interfaces.HilbertSpaceWithBasis>`
-.. |HilbertSpaceWithBasis| replace:: :class:`~nias.interfaces.HilbertSpaceWithBasis`
-.. |NormedSpaces| replace:: :class:`NormedSpaces <nias.interfaces.NormedSpace>`
-.. |NormedSpace| replace:: :class:`~nias.interfaces.NormedSpace`
-.. |SesquilinearForms| replace:: :class:`SesquilinearForms <nias.interfaces.SesquilinearForm>`
-.. |SesquilinearForm| replace:: :class:`~nias.interfaces.SesquilinearForm`
-.. |VectorArrays| replace:: :class:`VectorArrays <nias.interfaces.VectorArray>`
-.. |VectorArray| replace:: :class:`~nias.interfaces.VectorArray`
-.. |VectorSpaceWithBasis| replace:: :class:`~nias.interfaces.VectorSpaceWithBasis`
-.. |VectorSpaces| replace:: :class:`VectorSpaces <nias.interfaces.VectorSpace>`
-.. |VectorSpace| replace:: :class:`~nias.interfaces.VectorSpace`
 """
+
+def add_substition(qualname, singular=None, plural=True, kind='class'):
+    global substitutions
+
+    if singular is None:
+        singular = qualname.split('.')[-1]
+    substitutions += f'\n.. |{singular}| replace:: :{kind}:`~{qualname}`'
+
+    if plural is True:
+        plural = singular + 's'
+    if plural:
+        substitutions += f'\n.. |{plural}| replace:: :{kind}:`{plural} <{qualname}>`'
+
+for name in [
+        'EuclideanSpace',
+        'HilbertSpace',
+        'HilbertSpaceWithBasis',
+        'HSLinearOperator',
+        'LinearOperator',
+        'NormedSpace',
+        'Operator',
+        'SesquilinearForm',
+        'VectorArray',
+        'VectorSpace',
+]:
+    add_substition(f'nias.interfaces.{name}')
+
+add_substition('nias.interfaces.VectorSpaceWithBasis', plural='VectorSpacesWithBasis')
+
 
 def convert_substitution(line):
     key, subst = line.split(' replace:: ')
@@ -29,3 +46,6 @@ def convert_substitution(line):
 
 myst_substitutions = dict(convert_substitution(line)
                           for line in substitutions.split('\n') if line != '')
+
+if __name__ == '__main__':
+    print(substitutions)
