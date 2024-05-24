@@ -40,7 +40,7 @@ docs = [
   "myst-nb",
   "sphinx",
   "sphinx-autoapi",
-  "sphinx-material",
+  "sphinx-book-theme",
 ]
 
 [tool.coverage.run]
