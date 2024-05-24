@@ -35,6 +35,7 @@ class NumpyMatrixOperator(LinearOperator):
         assert U in self.source_space
         return self.range_space.from_numpy((self.matrix @ U._to_numpy().T).T)
 
+    # TODO: add conjugation
     def apply_transpose(self, V: NumpyVectorArray) -> NumpyVectorArray:
         assert V in self.range_space.antidual_space
         return self.source_space.antidual_space.from_numpy((self.matrix.T @ V.to_numpy().T).T)

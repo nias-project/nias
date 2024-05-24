@@ -343,6 +343,7 @@ class LinearOperator(Operator):
     def apply_transpose(self, V: VectorArray) -> VectorArray:
         pass
 
+    # TODO: add Hilbert space version using inner product
     def as_sesquilinear_form(self) -> SesquilinearForm:
         from nias.base.operators import OperatorBasedSesquilinearForm
         return OperatorBasedSesquilinearForm(self)
