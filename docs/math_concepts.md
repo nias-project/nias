@@ -82,11 +82,11 @@ $$
 $$
 
 For algebraic spaces $X$, it follows from Zorn's Lemma that $\Phi_X$ is always injective
-(for each $x \in X$ there is an $f \in X'$ with $f(x) \neq 0$).
+(for each $x \in X\setminus \{0\}$ there is an $f \in X'$ with $f(x) \neq 0$).
 If $X$ is a normed space, the injectivity of $\Phi_X$ follows from the Hahn-Banach theorem.
 We call $X$ reflexive, when $\Phi_X$ is an isomorphism.
 All finite-dimensional spaces are reflexive, as well as all Hilbert spaces.
-Further $L^p(X)$, is reflexive for $1 < p < \infty$.
+Further, $L^p(X)$ is reflexive for $1 < p < \infty$.
 
 ```{important}
 In NiAS, we assume all {{VectorSpaces}} $X$ to be reflexive.
@@ -109,7 +109,7 @@ $$
         = \overline{\langle u, f \rangle}.
 $$
 
-Note that the anti-dual pairing is independent of the (norm of) the spaces in which we consider the given vector/form.
+Note that the anti-dual pairing is independent of the (norm of the) spaces in which we consider the given vector/form.
 Thus, in NiAS, it is available as a free function {func}`~nias.interfaces.dual_pairing` acting on arbitrary
 {{VectorArrays}}.
 
@@ -134,7 +134,7 @@ Conversely, vectors can be constructed from basis coefficients using
 ```{note}
 Many spaces appearing in numerical analysis, e.g., finite-element spaces come with a basis, and vectors in these spaces
 are actually represented as coefficient vectors w.r.t. this basis in memory.
-Note, however, that there also many cases, where we do not have (efficient) access to basis coefficients, even if the
+Note, however, that there are also many cases, where we do not have (efficient) access to basis coefficients, even if the
 space is finite dimensional.
 One example are subspaces of another space that statisfy some non-trivial linear constraint.
 Also, there might be technical obstacles to obtain the basis coefficients.
@@ -154,7 +154,7 @@ $$
 $$
 and extending the $b_i^*$ anti-linearly to all of $X$, yielding for $u = \sum_{j=1}^N \lambda_j b_j$ the formula
 $$
-    b_i^*(u) = b_i^*\left(\sum_{j=1}^N \lambda_j b_j\right) = \sum_{j=1}^N \bar\lambda_j b_i^*(b_j) = \bar\lambda_j.
+    b_i^*(u) = b_i^*\left(\sum_{j=1}^N \lambda_j b_j\right) = \sum_{j=1}^N \bar\lambda_j b_i^*(b_j) = \bar\lambda_i.
 $$
 As every anti-linear form on $X$ is uniquely determined by its values on $b_1,\ldots,b_N$, it is easy to see that
 $b_1^*,\ldots,b_N^*$, indeed, is a basis of $X'$.
@@ -227,11 +227,11 @@ For $\mathbb{K} = \mathbb{R}$, $\varphi$ simply is a bilinear form.
 Choosing sesquilinear forms to be anti-linear in the first variable is merely a convention.
 This convention is not universally agreed upon equally many authors assume sesquilinear forms to be anti-linear in the
 second variable.
-In particular, when interacting with complex numbers in other codes, make sure of you are aware which convention is
+In particular, when interacting with complex numbers in other codes, make sure you are aware which convention is
 used.
 ```
 
-A sesquilinear $\varphi$ form on $X \times X$ is called Hermitian if
+A sesquilinear form $\varphi$ on $X \times X$ is called Hermitian if
 $$
     \varphi(u_1, u_2) = \overline{\varphi(u_2, u_1)}.
 $$
@@ -276,7 +276,7 @@ $$ (eq:inner_product_matrix)
 
 ### Dual spaces of Hilbert spaces and the Riesz isomorphism
 
-For a Hilbert Space $X$, we can associate with each $u \in X$ a corresponding anti-linear forms $\mathcal{R}_X(u)
+For a {{HilbertSpace}} $X$, we can associate with each $u \in X$ a corresponding anti-linear form $\mathcal{R}_X(u)
 \in X'$ given by
 
 $$
@@ -284,11 +284,12 @@ $$
 $$ (eq:def_riesz)
 
 It is easily checked that $\mathcal{R}_X$ is a linear map, and the Riesz representation theorem states that this map is
-actually an isomorphism.
+actually an isomorphism between $X$ and $X'$.
 Thus, every $f \in X'$ is of the form
 $$
-    f(v) = (v, u_f)_X.
+    f(v) = (v, u_f)_X
 $$
+for some unique $u_f\in X$.
 Furthermore, the Riesz isomorphism $\mathcal{R}_X$ is isometric, meaning that $\|\mathcal{R}_X(u)\|_{X'} = \|u\|_X$.
 As $\mathcal{R}_X^{-1}$ is linear, we can define an inner product on $X'$ given by
 $$
@@ -353,11 +354,11 @@ $$
     \underline{\lambda}^* := M \cdot \underline{\lambda} \qquad\text{and}\qquad
     f := \sum_{j=1}^N \lambda^*_j b_j^* \in X',
 $$
-where $b_1,\ldots,b_N^*$ again denotes the dual basis.
+where $b_1^*,\ldots,b_N^*$ again denotes the dual basis.
 For another arbitrary $v = \sum_{j=1}^n \mu_j b_j$, $\underline{\mu} = [\mu_1, \ldots, \mu_N]^T$ we have
 $$
 \begin{aligned}
-    f(v) &= <v, f> \\
+    f(v) &= \langle v, f\rangle \\
          &= \underline{\mu}^H \cdot \underline{\lambda}^* \\
          &= \underline{\mu}^H \cdot M \cdot \underline{\lambda} \\
          &= (v, u)_X.
@@ -423,10 +424,10 @@ $$
 ### Linear operators in coordinates
 
 Let $b_1,\ldots,b_N$, $c_1,\ldots,c_M$ be bases of $X$ and $Y$.
-Then to each linear operator $T: X \to Y$ we can assign a matrix $A \in \mathbb{M\times N}$ where the $j$-column
+Then to each linear operator $T: X \to Y$ we can assign a matrix $A \in \mathbb{K}^{M\times N}$ where the $j$-column
 $A_{:,j}$ of $A$ contains the coefficients of $T(b_j)$ w.r.t. $c_1,\ldots,c_M$, i.e.,
 $$
-    T(b_j) = \sum_{i_1}^{M} A_{i,j}c_i.
+    T(b_j) = \sum_{i=1}^{M} A_{i,j}c_i.
 $$
 By linearity of $T$ it follows that for any $u = \sum_{i=1}^{N} \lambda_ib_i$ we have that $T(u) =:
 \sum_{i=1}^{M}\mu_ic_i$ has the coefficient vector
@@ -458,7 +459,7 @@ products on $X$ or $Y$.
 
 ### Transpose operator in coordinates
 
-Let $A \in \mathbb{R}^{M\times N}$ be the matrix of a linear operator $T: X \to Y$, and let $b_1,\ldots,b_N$,
+Let $A \in \mathbb{K}^{M\times N}$ be the matrix of a linear operator $T: X \to Y$, and let $b_1,\ldots,b_N$,
 $c_1,\ldots,c_M$ be bases of $X$ and $Y$.
 $c_1,\ldots,c_M$ be bases of $X$ and $Y$.
 Let $B \in \mathbb{R}^{N \times M}$ bet the matrix of $T^t$ w.r.t. the dual bases $c_1^*,\ldots,c_N^*$,
