@@ -57,7 +57,7 @@ $$
 f(\lambda_1 u_1 + \lambda_2 u_2) = \bar\lambda_1 f(u_1) + \bar\lambda_2 f(u_2).
 $$
 
-In particular, in the real case, $\mathbb{K} = \mathbb{C}$, the anti-dual space of $X$ is the same as the dual space of
+In particular, in the real case, $\mathbb{K} = \mathbb{R}$, the anti-dual space of $X$ is the same as the dual space of
 $X$.
 If $X$ is a normed space (see below), then we assume all anti-linear forms in $X'$ to be continuous.
 When $X$ is finite dimensional, all anti-linear forms on $X$ are automatically continuous.
@@ -136,7 +136,7 @@ Many spaces appearing in numerical analysis, e.g., finite-element spaces come wi
 are actually represented as coefficient vectors w.r.t. this basis in memory.
 Note, however, that there are also many cases, where we do not have (efficient) access to basis coefficients, even if the
 space is finite dimensional.
-One example are subspaces of another space that statisfy some non-trivial linear constraint.
+One example are subspaces of another space that satisfy some non-trivial linear constraint.
 Also, there might be technical obstacles to obtain the basis coefficients.
 Further, infinite-dimensional spaces do not have a (finite) basis.
 Consequently, algorithms in NiAS try to avoid relying on basis representations whenever possible.
@@ -172,7 +172,7 @@ anti-dual basis of $X''$.
 
 Let $u = \sum_{j=1}^N \lambda_jb_j$ be a vector in $X$ and let $f = \sum_{i=1}^N \lambda_i^*b_i^*$ be an anti-linear
 form on $X$.
-Then we have:
+Then we have
 $$
 \begin{aligned}
     \langle u, f \rangle
