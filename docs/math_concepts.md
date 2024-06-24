@@ -4,6 +4,8 @@ kernelspec:
   name: python3
 ---
 
+<!-- markdownlint-disable-file MD049 -->
+
 # Mathematical Concepts
 
 In this document, we will briefly discuss the mathematical concepts underlying NiAS' {mod}`~nias.interfaces`.
@@ -225,7 +227,7 @@ For $\mathbb{K} = \mathbb{R}$, $\varphi$ simply is a bilinear form.
 
 ```{warning}
 Choosing sesquilinear forms to be anti-linear in the first variable is merely a convention.
-This convention is not universally agreed upon equally many authors assume sesquilinear forms to be anti-linear in the
+This convention is not universally agreed upon. Equally many authors assume sesquilinear forms to be anti-linear in the
 second variable.
 In particular, when interacting with complex numbers in other codes, make sure you are aware which convention is
 used.
@@ -319,10 +321,10 @@ Let some $\mathcal{R}_X(u) \in X'$ be given.
 Then $\mathcal{R}_{X'}(\mathcal{R}_{X}(u))$ is given by
 $$
 \begin{aligned}
-   \mathcal{R}*{X'}[\mathcal{R}_{X}(u)](f)
-    &= (f, \mathcal{R}*{X}(u))*{X'}\\
-    &= (\mathcal{R}*{X}^{-1}(f), u)*{X}\\
-    &= \overline{(u, \mathcal{R}*{X}^{-1}(f))_{X}}\\
+   \mathcal{R}_{X'}[\mathcal{R}_{X}(u)](f)
+    &= (f, \mathcal{R}_{X}(u))_{X'}\\
+    &= (\mathcal{R}_{X}^{-1}(f), u)_{X}\\
+    &= \overline{(u, \mathcal{R}_{X}^{-1}(f))_{X}}\\
     &= \overline{f(u)} \\
     &= \Phi_X[u](f),
 \end{aligned}
@@ -334,10 +336,10 @@ $$
 It follows
 $$
 \begin{aligned}
-    (\Phi_X(u), \Phi_X(v))*{X''}
-    &:= (\mathcal{R}*{X'}^{-1}(\Phi_X(u)), \mathcal{R}*{X'}^{-1}(\Phi_X(v))*{X'} \\
-    &= (\mathcal{R}*{X}(\Phi_X^{-1}(\Phi_X(u))), \mathcal{R}*{X}(\Phi_X^{-1}(\Phi_X(v)))*{X'} \\
-    &= (\mathcal{R}*{X}(u), \mathcal{R}*{X}(v))*{X'}  \\
+    (\Phi_X(u), \Phi_X(v))_{X''}
+    &:= (\mathcal{R}_{X'}^{-1}(\Phi_X(u)), \mathcal{R}_{X'}^{-1}(\Phi_X(v))_{X'} \\
+    &= (\mathcal{R}_{X}(\Phi_X^{-1}(\Phi_X(u))), \mathcal{R}_{X}(\Phi_X^{-1}(\Phi_X(v)))_{X'} \\
+    &= (\mathcal{R}_{X}(u), \mathcal{R}_{X}(v))_{X'}  \\
     &= (u, v)_X.
 \end{aligned}
 $$
