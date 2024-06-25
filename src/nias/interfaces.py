@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 Scalar: TypeAlias = int | float | complex | np.number
+
 Indices: TypeAlias = None | int | slice | list[int] | NDArray
 
 
@@ -161,6 +162,7 @@ class VectorArray(ABC):
                 and len({i if i >= 0 else l+i for i in ind if -l <= i < l}) == len(ind))
 
 
+# TODO: rename to antidual_pairing?
 def dual_pairing(left: VectorArray, right: VectorArray, pairwise: bool = False) -> NDArray:
     result = left._dual_pairing(right, pairwise)
     if result is NotImplemented:
@@ -218,10 +220,12 @@ class VectorSpaceWithBasis(VectorSpace):
 
     dim: int
 
+    #TODO: rename to from_coefficients()?
     @abstractmethod
     def from_numpy(self, data, ensure_copy=False) -> VectorArray:
         pass
 
+    #TODO: rename to coefficients()?
     @abstractmethod
     def to_numpy(self, U: VectorArray, ensure_copy=False) -> NDArray:
         pass
@@ -252,6 +256,7 @@ class Norm(ABC):
         pass
 
 
+#TODO: Rename to BanachSpace as we assume reflexivity anyway
 class NormedSpace(VectorSpace):
     norm: Norm
 
@@ -338,6 +343,7 @@ class LinearOperator(Operator):
     def apply_transpose(self, V: VectorArray) -> VectorArray:
         pass
 
+    # TODO: add Hilbert space version using inner product
     def as_sesquilinear_form(self) -> SesquilinearForm:
         from nias.base.operators import OperatorBasedSesquilinearForm
         return OperatorBasedSesquilinearForm(self)
