@@ -47,7 +47,7 @@ It is allowed to multiply a real array by a complex scalar to obtain a complexif
 Not all {{VectorArray}} implementations will support complex numbers, though.
 Except for complexification, in-place {{VectorArray}} methods never change the `scalar_type`.
 A {{VectorArray}} $U$ is contained in a given {{VectorSpace}} $X$, irrespective of the `scalar_types` of $U$ and $X$,
-as long as both are real or $X$ is a complex space.
+as long as $X$ is complex when $U$ is.
 
 ### Anti-dual spaces
 
