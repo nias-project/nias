@@ -1,6 +1,5 @@
-from nias.interfaces import VectorArray, VectorSpace
+from nias.bindings.nias_cpp.interfaces import Vector
 
-from nias.bindings.nias_cpp.interfaces import ListVectorArray, ListVectorArrayImpl, ListVectorSpace, Vector
 
 class NiasCppVector(Vector):
     def __init__(self, impl):
@@ -34,42 +33,3 @@ class NiasCppVector(Vector):
 
     def dot(self, other):
         return self.impl.dot(other.impl)
-
-
-class NiasCppListVectorSpace(ListVectorSpace):
-    def __init__(self, dim, vector_type):
-        self.dim = dim
-        self.vector_type = vector_type
-
-    def __eq__(self, other):
-        return type(other) is NiasCppListVectorSpace and self.dim == other.dim and self.vector_type == other.vector_type
-
-    def __ge__(self, other: "VectorSpace") -> bool:
-        raise NotImplementedError
-        return isinstance(other, NiasCppListVectorSpace) and self.dim == other.dim
-
-    def __contains__(self, element: VectorArray) -> bool:
-        return isinstance(element, ListVectorArray) and element.dim == self.dim
-
-    def empty(self, size_hint=0) -> ListVectorArray:
-        return ListVectorArray(impl=ListVectorArrayImpl([], self.dim))
-
-    @property
-    def antidual_space(self) -> "NiasCppListVectorSpace":
-        return self
-
-    def zero_vector(self):
-        return NiasCppVector(self.vector_type(self.dim))
-
-    def make_vector(self, obj):
-        return NiasCppVector(obj)
-
-    def from_data(self, data):
-        raise NotImplementedError
-
-    def from_vectors(self, vecs):
-        assert isinstance(vecs, (list, NiasCppVector))
-        if isinstance(vecs, NiasCppVector):
-            vecs = [vecs]
-        return ListVectorArray(impl=ListVectorArrayImpl(vecs, len(vecs[0])))
-

@@ -2,11 +2,11 @@ import numpy as np
 from nias.base.vectorarrays import VectorArrayBase, VectorArrayImpl
 
 class NiasCppVectorArrayImpl(VectorArrayImpl):
-    scalar_type = float
 
     def __init__(self, impl):
         self.impl = impl
         self.dim = impl.dim
+        self.scalar_type = type(impl.get(0))
 
     def is_compatible_array(self, other: "VectorArrayImpl") -> bool:
         return isinstance(other, NiasCppVectorArrayImpl) and self.impl.is_compatible_array(other.impl)
@@ -53,7 +53,7 @@ class NiasCppVectorArray(VectorArrayBase):
     def vectors(self):
             indices = self.impl._index_to_list(self.ind)
             if len(indices) == 0:
-                return self.impl.impl.vectors
+                return [self.impl.impl.get(i) for i in range(len(self.impl.impl))]
             else:
-                return [self.impl.impl.vectors[i] for i in indices]
+                return [self.impl.impl.get(i) for i in indices]
 
