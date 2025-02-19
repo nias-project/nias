@@ -25,7 +25,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
-  "numpy>=1.20.3,!=1.25.0,<2", # 1.25.0 crashes CI, >=2 breaks API
+  "numpy>=1.20.3,!=1.25.0", # 1.25.0 crashes CI
   "scipy>=1.5.4",
   "typer",
 ]
