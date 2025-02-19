@@ -49,11 +49,3 @@ class NiasCppVectorArray(VectorArrayBase):
     def __str__(self):
         num_vecs = len(self.impl._index_to_list(self.ind) if self.ind else self.impl)
         return f'{type(self).__name__} of {num_vecs} vectors of dimension {self.impl.dim}'
-
-    @property
-    def vectors(self):
-            indices = self.impl._index_to_list(self.ind)
-            if not indices:
-                return [self.impl.impl.get(i) for i in range(len(self.impl.impl))]
-            else:
-                return [self.impl.impl.get(i) for i in indices]
