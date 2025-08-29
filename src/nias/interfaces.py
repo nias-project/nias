@@ -235,7 +235,7 @@ class VectorSpaceWithBasis(VectorSpace):
         pass
 
     def full(self, value, count=1):
-        return self.from_numpy(np.full((self.dim, count), value))
+        return self.from_numpy(np.full((count, self.dim), value))
 
     def zeros(self, count: int = 1) -> VectorArray:
         return self.full(0., count)
