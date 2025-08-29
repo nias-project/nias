@@ -1,9 +1,15 @@
-# outline for a myst_nb project with sphinx
-# build with: sphinx-build -nW --keep-going -b html . ./_build/html
+# This file is part of the NiAS project (https://github.com/nias-project).
+# Copyright NiAS developers and contributors. All rights reserved.
+# License: BSD 2-Clause License (https://opensource.org/licenses/BSD-2-Clause)
+
+import os
 import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 # load extensions
-extensions = ['myst_nb']
+extensions = ['autoapi.extension', 'myst_nb', 'sphinx.ext.intersphinx']
 
 # specify project details
 master_doc = 'index'
@@ -15,6 +21,40 @@ version = subprocess.run(['hatch', 'version'], capture_output=True).stdout.decod
 # basic build settings
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
 nitpicky = True
+
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'python': ('https://docs.python.org/3/', None),
+}
+
+import substitutions  # noqa: I001
+rst_epilog = substitutions.substitutions
+
+suppress_warnings = ['autoapi']
+
+autoapi_dirs = ['../src']
+autoapi_type = 'python'
+autoapi_keep_files = False
+suppress_warnings = ['autoapi']
+autoapi_member_order = 'groupwise'
+autoapi_options = [
+    'show-inheritance',
+    'show-module-summary',
+    'members',
+    'undoc-members'
+]
+
+myst_enable_extensions = [
+    'amsmath',
+    'deflist',
+    'dollarmath',
+    'smartquotes',
+    'strikethrough',
+    'substitution',
+]
+myst_dmath_double_inline = True  # allow $$ .. $$ without surrounding blank lines
+myst_heading_anchors = 3  # automatically adds 'title-of-heading' anchors for headings
+myst_substitutions = substitutions.myst_substitutions
 
 ## myst_nb default settings
 
@@ -99,67 +139,29 @@ nitpicky = True
 # The format to use for text/markdown rendering
 # nb_render_markdown_format = 'commonmark'
 
-html_theme = 'sphinx_material'
+
+html_theme = 'sphinx_book_theme'
 html_theme_options = {
-    'nav_title': 'NiAS Documentation',
-    'globaltoc_depth': 6,
-    'theme_color': 'indigo',
-    'color_primary': 'indigo',
-    'color_accent': 'blue',
-    'repo_url': 'https://github.com/nias-project/nias',
-    'repo_name': 'nias',
-    'logo_icon': '&#xe0e0',
+    'repository_url': 'https://github.com/nias-project/nias',
+    'use_repository_button': True,
+    'show_toc_level': 1,
 }
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-html_title = f'{project} v{version} Manual'
+html_title = 'NiAS<br>Numerics in Abstract Spaces'
+html_static_path = ['_static']
+html_css_files = ['custom.css']
 
-# The name of an image file (within the static path) to place at the top of
-# the sidebar.
-# html_logo = 'TODO'
 
-# The name of an image file to use as favicon.
-# html_favicon = 'TODO'
+TYPE_ALIASES = ['Indices', 'NDArray', 'ArrayLike', 'Scalar']
 
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
 
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-html_last_updated_fmt = '%b %d, %Y'
+def resolve_type_aliases(app, env, node, contnode):
+    if (node['refdomain'] == 'py'
+        and node['reftype'] == 'class'
+        and node['reftarget'].split('.')[-1] in TYPE_ALIASES):
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-# html_use_smartypants = True
+        from sphinx.errors import NoUri
+        raise NoUri
 
-# Custom sidebar templates, maps document names to template names.
-# all: "**": ["logo-text.html", "globaltoc.html", "localtoc.html", "searchbox.html"]
-html_sidebars = {
-    '**': ['logo-text.html', 'globaltoc.html', 'searchbox.html']
-}
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-# html_additional_pages = {
-#    'index': 'indexcontent.html',
-# }
 
-# html_css_files = ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css']
-
-# If false, no module index is generated.
-html_use_modindex = True
-
-# If true, the reST sources are included in the HTML build as _sources/<name>.
-# html_copy_source = True
-
-# If true, an OpenSearch description file will be output, and all pages will
-# contain a <link> tag referring to it.  The value of this option must be the
-# base URL from which the finished HTML is served.
-# html_use_opensearch = ''
-
-# If nonempty, this is the file name suffix for HTML files (e.g. ".html").
-# html_file_suffix = '.html'
-
-# Hide link to page source.
-html_show_sourcelink = False
+def setup(app):
+    app.connect('missing-reference', resolve_type_aliases)

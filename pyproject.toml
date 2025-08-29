@@ -39,7 +39,8 @@ docs = [
   "hatch",
   "myst-nb",
   "sphinx",
-  "sphinx-material",
+  "sphinx-autoapi",
+  "sphinx-book-theme",
 ]
 
 [tool.coverage.run]

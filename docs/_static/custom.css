@@ -1,0 +1,9 @@
+#rtd-footer-container {
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+div.math mjx-container {
+    overflow-x: auto;
+    overflow-y: clip;
+}
